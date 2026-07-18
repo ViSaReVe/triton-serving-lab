@@ -1,0 +1,6 @@
+# For export + local sanity check:
+torch
+onnxruntime
+numpy
+# For talking to the Triton server:
+tritonclient[http]

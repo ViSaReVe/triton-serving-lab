@@ -1,0 +1,35 @@
+# Triton model config — DYNAMIC BATCHING ON.
+# Triton reads this file to know how to schedule and run the model in model.onnx.
+
+name: "audio_cnn"
+platform: "onnxruntime_onnx"          # use the ONNX Runtime backend
+max_batch_size: 32                    # >0 means "batching allowed"; Triton prepends a batch dim
+
+# The batch dim is implicit (from max_batch_size), so dims below are PER-SAMPLE (no leading N).
+input [
+  {
+    name: "input"                     # must match input_names in export_onnx.py
+    data_type: TYPE_FP32
+    dims: [ 1, 128, 128 ]             # (channels, mel_bins, frames)
+  }
+]
+output [
+  {
+    name: "logits"                    # must match output_names in export_onnx.py
+    data_type: TYPE_FP32
+    dims: [ 10 ]                      # 10 class logits
+  }
+]
+
+# ---- THE LESSON ----
+# Dynamic batching: Triton holds incoming single-sample requests for up to max_queue_delay
+# microseconds and fuses whatever arrived into one batch, then runs a single forward pass.
+# Fewer, larger forward passes = higher throughput (and often lower average latency under load).
+dynamic_batching {
+  preferred_batch_size: [ 4, 8, 16 ]        # try to form batches of these sizes
+  max_queue_delay_microseconds: 3000        # ...but never wait more than 3 ms to do it
+}
+
+instance_group [
+  { count: 1, kind: KIND_CPU }              # 1 model instance on CPU (no GPU on this Mac)
+]

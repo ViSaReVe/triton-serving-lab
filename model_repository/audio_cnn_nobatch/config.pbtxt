@@ -1,0 +1,28 @@
+# Triton model config — DYNAMIC BATCHING OFF (the control group for your benchmark).
+# Identical model, identical weights. The ONLY difference vs audio_cnn/ is the missing
+# dynamic_batching block. Run the benchmark against both and compare throughput.
+
+name: "audio_cnn_nobatch"
+platform: "onnxruntime_onnx"
+max_batch_size: 32
+
+input [
+  {
+    name: "input"
+    data_type: TYPE_FP32
+    dims: [ 1, 128, 128 ]
+  }
+]
+output [
+  {
+    name: "logits"
+    data_type: TYPE_FP32
+    dims: [ 10 ]
+  }
+]
+
+# NO dynamic_batching block here -> each request runs as its own forward pass.
+
+instance_group [
+  { count: 1, kind: KIND_CPU }
+]

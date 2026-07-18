@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Model checkpoints (large, not needed to run the lab — the exported .onnx IS committed)
+*.pt
+*.pth
+
+# Data / results scratch
+data/
+*.tar
